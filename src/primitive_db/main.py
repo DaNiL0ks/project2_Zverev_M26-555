@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+from primitive_db.engine import welcome
 
 
 def main():
-    """Print the application startup message."""
-    print('DB project is running!')
+    """Start the interactive database application."""
+    welcome()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
