@@ -5,3 +5,6 @@ HELP_TEXT = """
 <command> exit - выйти из программы
 <command> help - справочная информация
 """
+
+META_FILE = "db_meta.json"
+VALID_TYPES = ("int", "str", "bool")
