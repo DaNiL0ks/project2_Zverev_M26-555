@@ -32,29 +32,35 @@ uv run database
 | `drop_table <имя_таблицы>` | Удалить таблицу и её файл данных, если он существует |
 | `help` | Показать справку |
 | `exit` | Завершить работу |
+| `insert into <таблица> values (<значения>)` | Добавить запись. `ID` присваивается автоматически. |
+| `select from <таблица>` | Показать все записи. |
+| `select from <таблица> where <условие>` | Показать записи по условию. |
+| `update <таблица> set <столбец> = <значение> where <условие>` | Обновить подходящие записи. |
+| `delete from <таблица> where <условие>` | Удалить подходящие записи. |
+| `info <таблица>` | Показать схему таблицы и количество записей. |
 
+Строки указываются в кавычках, целые числа и булевы значения `true` и `false` — без кавычек. Несколько условий в `WHERE` можно соединить через `AND`.
 Поддерживаемые типы столбцов: `int`, `str`, `bool`.
 Столбец `ID:int` добавляется автоматически.
 
-### Пример использования
+### Пример работы
 
 ```text
-Введите команду: create_table users name:str age:int is_active:bool
-Таблица "users" успешно создана со столбцами: ID:int, name:str, age:int, is_active:bool
-
-Введите команду: list_tables
-Список таблиц:
-- users
-
-Введите команду: drop_table users
-Таблица "users" успешно удалена.
-
-Введите команду: list_tables
-Таблиц пока нет.
-
-Введите команду: exit
+create_table crud_demo name:str age:int is_active:bool
+list_tables
+insert into crud_demo values ("Анна Мария", 22, true)
+insert into crud_demo values ("Иван", 25, false)
+select from crud_demo
+select from crud_demo where age = 22 AND is_active = true
+update crud_demo set age = 23 where ID = 1
+select from crud_demo where ID = 1
+delete from crud_demo where ID = 2
+info crud_demo
+drop_table crud_demo
+exit
 ```
 
-## Демонстрация
 
-[![Демонстрация управления таблицами](https://asciinema.org/a/mTNFmNEBD0wQ2cjP.svg)](https://asciinema.org/a/mTNFmNEBD0wQ2cjP)
+### Демонстрация CRUD
+
+[![Демонстрация CRUD-операций](https://asciinema.org/a/wTYSw1PUPFAC7JOc.svg)](https://asciinema.org/a/wTYSw1PUPFAC7JOc)

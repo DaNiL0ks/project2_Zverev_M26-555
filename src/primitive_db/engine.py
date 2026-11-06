@@ -1,15 +1,118 @@
 import shlex
 
 import prompt
+from prettytable import PrettyTable
 
 from primitive_db.constants import COMMAND_PROMPT, HELP_TEXT, META_FILE, WELCOME_MESSAGE
-from primitive_db.core import create_table, drop_table
-from primitive_db.utils import delete_table_file, load_metadata, save_metadata
+from primitive_db.core import (
+    create_table,
+    delete,
+    drop_table,
+    insert,
+    select,
+    update,
+    validate_column_values,
+)
+from primitive_db.parser import parse_delete, parse_insert, parse_select, parse_update
+from primitive_db.utils import (
+    delete_table_file,
+    load_metadata,
+    load_table_data,
+    save_metadata,
+    save_table_data,
+)
 
 
 def print_help():
     """Display the available commands."""
     print(HELP_TEXT)
+
+
+def handle_insert(metadata, command_text):
+    """Insert a record, save the table, and report the assigned ID."""
+    table_name, values = parse_insert(command_text)
+    table_data = insert(metadata, table_name, values)
+    save_table_data(table_name, table_data)
+    new_id = table_data[-1]["ID"]
+    print(f'Запись с ID={new_id} успешно добавлена в таблицу "{table_name}".')
+
+
+def handle_select(metadata, command_text):
+    """Select matching records and display them as a table."""
+    table_name, where_clause = parse_select(command_text)
+    if table_name not in metadata:
+        raise ValueError(f'Таблица "{table_name}" не существует.')
+    table_schema = metadata[table_name]
+    if where_clause is not None:
+        validate_column_values(table_schema, where_clause)
+    table_data = load_table_data(table_name)
+    matching_records = select(table_data, where_clause)
+    columns = list(table_schema)
+    result_table = PrettyTable(columns)
+    for record in matching_records:
+        result_table.add_row([record[column] for column in columns])
+    print(result_table)
+
+
+def handle_update(metadata, command_text):
+    """Update matching records, save the table, and report their IDs."""
+    table_name, set_clause, where_clause = parse_update(command_text)
+    if table_name not in metadata:
+        raise ValueError(f'Таблица "{table_name}" не существует.')
+    table_schema = metadata[table_name]
+    if "ID" in set_clause:
+        raise ValueError("Столбец ID нельзя изменять.")
+    validate_column_values(table_schema, set_clause)
+    validate_column_values(table_schema, where_clause)
+    table_data = load_table_data(table_name)
+    matching_records = select(table_data, where_clause)
+    if not matching_records:
+        print("Подходящих записей не найдено.")
+        return
+    updated_data = update(table_data, set_clause, where_clause)
+    save_table_data(table_name, updated_data)
+    for record in matching_records:
+        record_id = record["ID"]
+        print(f'Запись с ID={record_id} в таблице "{table_name}" успешно обновлена.')
+
+
+def handle_delete(metadata, command_text):
+    """Delete matching records, save the table, and report their IDs."""
+    table_name, where_clause = parse_delete(command_text)
+    if table_name not in metadata:
+        raise ValueError(f'Таблица "{table_name}" не существует.')
+    validate_column_values(metadata[table_name], where_clause)
+    table_data = load_table_data(table_name)
+    matching_records = select(table_data, where_clause)
+    if not matching_records:
+        print("Подходящих записей не найдено.")
+        return
+    remaining_records = delete(table_data, where_clause)
+    save_table_data(table_name, remaining_records)
+    for record in matching_records:
+        record_id = record["ID"]
+        print(f'Запись с ID={record_id} успешно удалена из таблицы "{table_name}".')
+
+
+def format_columns(table_schema):
+    """Format schema columns as comma-separated name:type pairs."""
+    return ", ".join(
+        f"{column}:{column_type}" for column, column_type in table_schema.items()
+    )
+
+
+def handle_info(metadata, args):
+    """Display a table's schema and record count."""
+    if len(args) != 2:
+        raise ValueError("Укажи одно имя таблицы. Пример: info users.")
+    table_name = args[1]
+    if table_name not in metadata:
+        raise ValueError(f'Таблица "{table_name}" не существует.')
+    columns_text = format_columns(metadata[table_name])
+    record_count = len(load_table_data(table_name))
+    print(f"Таблица: {table_name}")
+    print(f"Столбцы: {columns_text}")
+    print(f"Количество записей: {record_count}")
 
 
 def run():
@@ -51,10 +154,7 @@ def run():
             try:
                 metadata = create_table(metadata, table_name, columns)
                 save_metadata(META_FILE, metadata)
-                columns_text = ", ".join(
-                    f"{column_name}:{column_type}"
-                    for column_name, column_type in metadata[table_name].items()
-                )
+                columns_text = format_columns(metadata[table_name])
                 print(
                     f'Таблица "{table_name}" успешно создана '
                     f"со столбцами: {columns_text}"
@@ -75,6 +175,31 @@ def run():
                 delete_table_file(table_name)
                 save_metadata(META_FILE, metadata)
                 print(f'Таблица "{table_name}" успешно удалена.')
+            except ValueError as error:
+                print(f"Ошибка: {error} Попробуйте снова.")
+        elif command == "insert":
+            try:
+                handle_insert(metadata, user_input)
+            except ValueError as error:
+                print(f"Ошибка: {error} Попробуйте снова.")
+        elif command == "select":
+            try:
+                handle_select(metadata, user_input)
+            except ValueError as error:
+                print(f"Ошибка: {error} Попробуйте снова.")
+        elif command == "update":
+            try:
+                handle_update(metadata, user_input)
+            except ValueError as error:
+                print(f"Ошибка: {error} Попробуйте снова.")
+        elif command == "delete":
+            try:
+                handle_delete(metadata, user_input)
+            except ValueError as error:
+                print(f"Ошибка: {error} Попробуйте снова.")
+        elif command == "info":
+            try:
+                handle_info(metadata, args)
             except ValueError as error:
                 print(f"Ошибка: {error} Попробуйте снова.")
         else:
