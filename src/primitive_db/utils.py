@@ -22,3 +22,19 @@ def delete_table_file(table_name):
     table_file_path = os.path.join(DATA_DIR, f"{table_name}.json")
     if os.path.exists(table_file_path):
         os.remove(table_file_path)
+
+def load_table_data(table_name):
+    """Load table records from JSON, returning an empty list if missing."""
+    table_file_path = os.path.join(DATA_DIR, f"{table_name}.json")
+    try:
+        with open(table_file_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+
+def save_table_data(table_name, data):
+    """Save table records to a JSON file using UTF-8 encoding."""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    table_file_path = os.path.join(DATA_DIR, f"{table_name}.json")
+    with open(table_file_path, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
