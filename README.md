@@ -1,7 +1,25 @@
 # Примитивная база данных
 
-Консольное приложение на Python для создания, просмотра и удаления таблиц.
-Метаданные таблиц сохраняются в JSON-файле между запусками программы.
+Консольная база данных на Python. Позволяет создавать таблицы, добавлять, искать, обновлять и удалять записи. 
+Схемы таблиц и записи хранятся в JSON-файлах между запусками.
+
+## Демонстрации
+
+### Финальная — полный сценарий работы
+
+[![Полная демонстрация базы данных](https://asciinema.org/a/xN09FsJqPwpRIknQ.svg)](https://asciinema.org/a/xN09FsJqPwpRIknQ)
+
+### Этап 2 — управление таблицами
+
+[![Управление таблицами](https://asciinema.org/a/mTNFmNEBD0wQ2cjP.svg)](https://asciinema.org/a/mTNFmNEBD0wQ2cjP)
+
+### Этап 3 — CRUD-операции
+
+[![CRUD-операции](https://asciinema.org/a/wTYSw1PUPFAC7JOc.svg)](https://asciinema.org/a/wTYSw1PUPFAC7JOc)
+
+### Этап 4 — декораторы и кэширование
+
+[![Декораторы и кэширование](https://asciinema.org/a/Ua8a9MVw8k8Arf9q.svg)](https://asciinema.org/a/Ua8a9MVw8k8Arf9q)
 
 ## Установка
 
@@ -43,6 +61,13 @@ uv run database
 Поддерживаемые типы столбцов: `int`, `str`, `bool`.
 Столбец `ID:int` добавляется автоматически.
 
+## Декораторы и кэширование
+
+- Ошибки команд выводятся в терминал. После ошибки можно ввести следующую команду.
+- `delete` и `drop_table` запрашивают подтверждение. Ответ `y` выполняет операцию, любой другой ответ отменяет её.
+- `insert` и `select` показывают время выполнения.
+- Повторный `select` с теми же условиями использует кэш. После изменения данных кэш этой таблицы сбрасывается.
+
 ### Пример работы
 
 ```text
@@ -55,12 +80,10 @@ select from crud_demo where age = 22 AND is_active = true
 update crud_demo set age = 23 where ID = 1
 select from crud_demo where ID = 1
 delete from crud_demo where ID = 2
+y
 info crud_demo
 drop_table crud_demo
+y
 exit
 ```
 
-
-### Демонстрация CRUD
-
-[![Демонстрация CRUD-операций](https://asciinema.org/a/wTYSw1PUPFAC7JOc.svg)](https://asciinema.org/a/wTYSw1PUPFAC7JOc)
