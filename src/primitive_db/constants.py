@@ -18,5 +18,6 @@ HELP_TEXT = (
 )
 
 META_FILE = "db_meta.json"
-VALID_TYPES = ("int", "str", "bool")
+PYTHON_TYPES = {"int": int, "str": str, "bool": bool}
+VALID_TYPES = tuple(PYTHON_TYPES)
 DATA_DIR = "data"
