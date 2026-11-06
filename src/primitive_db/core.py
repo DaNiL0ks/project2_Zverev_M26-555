@@ -1,4 +1,4 @@
-from primitive_db.constants import VALID_TYPES
+from primitive_db.constants import PYTHON_TYPES, VALID_TYPES
 from primitive_db.decorators import confirm_action, handle_db_errors, log_time
 from primitive_db.utils import load_table_data
 
@@ -119,12 +119,11 @@ def delete(table_data, where_clause):
 @handle_db_errors
 def validate_column_values(table_schema, values):
     """Check that each column exists and its value has the declared type."""
-    python_types = {"int": int, "str": str, "bool": bool}
     for column_name, value in values.items():
         if column_name not in table_schema:
             raise ValueError(f"Столбец '{column_name}' не существует в таблице.")
         column_type = table_schema[column_name]
-        if type(value) is not python_types[column_type]:
+        if type(value) is not PYTHON_TYPES[column_type]:
             raise ValueError(
                 f"Неверный тип для столбца '{column_name}': "
                 f"ожидался {column_type}, получен {type(value).__name__}."
