@@ -12,6 +12,8 @@ def handle_db_errors(func):
             print(f"Ошибка: не найдена таблица или столбец {error}.")
         except ValueError as error:
             print(f"Ошибка: {error} Попробуйте снова.")
+        except Exception as error:
+            print(f"Непредвиденная ошибка: {error}")
         return None
     return wrapper
 

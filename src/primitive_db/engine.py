@@ -190,7 +190,11 @@ def run():
     print(WELCOME_MESSAGE)
     print_help()
     while True:
-        metadata = load_metadata(META_FILE)
+        try:
+            metadata = load_metadata(META_FILE)
+        except (OSError, ValueError) as error:
+            print(f'Не удалось загрузить метаданные из "{META_FILE}": {error}')
+            return
         user_input = prompt.string(COMMAND_PROMPT).strip()
         try:
             args = shlex.split(user_input)
